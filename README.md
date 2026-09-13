@@ -1,6 +1,6 @@
 
 
-````markdown
+
 # Prodigal AI — Multi-Agent Social Media AI
 
 ## AI Intern Hiring Task 1
