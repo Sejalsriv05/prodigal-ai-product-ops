@@ -106,7 +106,7 @@ The project uses a custom sequential multi-agent orchestration approach with a s
 
 ---
 
-# 3. Agents
+## 3. Agents
 
 ## Strategy Agent
 
@@ -146,7 +146,7 @@ Generated posts must be reviewed and explicitly approved through the UI before t
 
 ---
 
-# 4. Local Model Layer
+## 4. Local Model Layer
 
 The project uses:
 
