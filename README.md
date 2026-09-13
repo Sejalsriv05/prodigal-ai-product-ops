@@ -33,7 +33,7 @@ The complete LLM pipeline runs locally using **Ollama** and does not depend on h
 
 ---
 
-# 2. Architecture
+## 2. Architecture
 
 The project uses a custom sequential multi-agent orchestration approach with a shared campaign state.
 
