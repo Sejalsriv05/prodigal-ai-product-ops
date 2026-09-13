@@ -1,268 +1,279 @@
-
-
-
 # Prodigal AI — Multi-Agent Social Media AI
 
 ## AI Intern Hiring Task 1
 
 **Candidate:** Sejal Srivastava  
-**College:** VIT Bhopal University  
-**Project:** Build a Multi-Agent Social Media AI Company
+**Task:** Multi-Agent Social Media AI System  
+**Model:** Llama 3 8B via Ollama  
+**Platform:** Python + Streamlit + FastAPI + SQLite
 
 ---
 
 ## 1. Overview
 
-This project implements a fully local, multi-agent social media campaign system.
+This project is a local, multi-agent AI system for planning, creating, publishing, and analyzing social media campaigns.
 
-The system takes a human-written campaign brief and converts it into:
+The system takes a human campaign brief and passes it through specialized agents:
 
-- Campaign strategy
-- Target audience and channel mix
-- Social media post copy
-- Hashtags and CTAs
-- Per-post creative briefs
-- Human-reviewed campaign
-- Published posts on a self-built mock social media platform
-- Simulated audience engagement
-- Weekly analytics
-- Recommendations for the next week
-- A Week 2 campaign based on Week 1 learnings
+1. Strategy Agent
+2. Content Writer Agent
+3. Creative Agent
+4. Human Review Gate
+5. Publisher Agent
+6. Analytics Agent
 
-The complete LLM pipeline runs locally using **Ollama** and does not depend on hosted LLM APIs.
+The system then uses Week 1 performance to create an improved Week 2 campaign and compares the results.
+
+The main objective is to demonstrate a **closed-loop AI workflow** rather than a single prompt generating social media content.
 
 ---
 
 ## 2. Architecture
 
-The project uses a custom sequential multi-agent orchestration approach with a shared campaign state.
+The system uses a sequential multi-agent architecture with a shared campaign state.
 
+```text
+                         HUMAN CAMPAIGN BRIEF
+                                  |
+                                  v
+                       +----------------------+
+                       |    STRATEGY AGENT    |
+                       | Audience + channels  |
+                       | Campaign direction   |
+                       +----------+-----------+
+                                  |
+                                  v
+                       +----------------------+
+                       | CONTENT WRITER AGENT |
+                       | Captions + hashtags  |
+                       | Platform copy        |
+                       +----------+-----------+
+                                  |
+                                  v
+                       +----------------------+
+                       |    CREATIVE AGENT    |
+                       | Visual direction     |
+                       | Creative briefs      |
+                       +----------+-----------+
+                                  |
+                                  v
+                       +----------------------+
+                       |   HUMAN REVIEW GATE  |
+                       | Approve / revise     |
+                       +----------+-----------+
+                                  |
+                                  v
+                       +----------------------+
+                       |   PUBLISHER AGENT    |
+                       | Publish to mock API  |
+                       +----------+-----------+
+                                  |
+                                  v
+                       +----------------------+
+                       |   MOCK SOCIAL MEDIA  |
+                       |   PLATFORM + SQLite  |
+                       +----------+-----------+
+                                  |
+                                  v
+                       +----------------------+
+                       |   ANALYTICS AGENT    |
+                       | Performance analysis |
+                       | Recommendations     |
+                       +----------+-----------+
+                                  |
+                                  v
+                       +----------------------+
+                       |     WEEK 2 LOOP      |
+                       | Apply learnings      |
+                       | Re-publish + compare |
+                       +----------------------+
+```
 
-                    ┌─────────────────────┐
-                    │    HUMAN BRIEF      │
-                    │   Streamlit UI      │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   STRATEGY AGENT    │
-                    │ Audience / Strategy │
-                    │ Channel Mix / KPIs  │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ CONTENT WRITER      │
-                    │ Copy / Hooks / CTA  │
-                    │ Hashtags / Tone     │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   CREATIVE AGENT    │
-                    │ Visual / Asset Brief│
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │  HUMAN REVIEW GATE  │
-                    │  Approve / Reject   │
-                    └──────────┬──────────┘
-                               │
-                         APPROVED
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   PUBLISHER AGENT   │
-                    │   API Integration   │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-              ┌─────────────────────────────────┐
-              │     MOCK SOCIAL PLATFORM        │
-              │        FastAPI + SQLite         │
-              │                                 │
-              │ Posts → Simulation → Metrics    │
-              └────────────────┬────────────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   ANALYTICS AGENT   │
-                    │ Performance / Why   │
-                    │ Recommendations     │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │      WEEK 2         │
-                    │ Apply Week 1        │
-                    │ Recommendations     │
-                    └──────────┬──────────┘
-                               │
-                               └──────────────►
-                                  Review → Publish
-                                  → Analyse → Compare
-````
+### Local Model Layer
+
+All AI generation is performed locally using **Ollama**.
+
+No hosted LLM API is required for the main application flow.
+
+The application uses:
+
+- Python
+- Ollama
+- Llama 3 8B
+- Streamlit
+- FastAPI
+- SQLite
+- Pydantic
 
 ---
 
 ## 3. Agents
 
-## Strategy Agent
+### Strategy Agent
 
-Converts the human brief into campaign strategy.
+The Strategy Agent converts the human campaign brief into a structured campaign strategy.
 
-It determines the target audience, campaign direction, channel mix, objectives and content approach.
+Responsibilities:
 
-## Content Writer Agent
-
-Creates the actual social media copy.
-
-It generates hooks, calls-to-action, hashtags and channel-aware content while following the campaign requirements.
-
-## Creative Agent
-
-Creates a creative/visual brief for every post.
-
-It describes the visual asset, lighting, rendering style, camera angle, composition and overall creative direction.
-
-## Publisher Agent
-
-Publishes approved posts to the mock social media platform.
-
-It converts the generated campaign data into API requests and stores the published posts through the platform.
-
-## Analytics Agent
-
-Reads campaign performance from the mock platform.
-
-It identifies supported patterns, explains possible reasons and generates concrete recommendations for the next week.
-
-## Human Review Gate
-
-The human operator remains in control of publishing.
-
-Generated posts must be reviewed and explicitly approved through the UI before the Publisher Agent can publish them.
+- Identify the target audience
+- Determine campaign direction
+- Select suitable channels
+- Define content direction
+- Maintain the original campaign objective
 
 ---
 
-## 4. Local Model Layer
+### Content Writer Agent
 
-The project uses:
+The Content Writer Agent converts the strategy into platform-ready social media posts.
 
-**Model:** Llama 3 8B
-**Runtime:** Ollama
-**Ollama Version:** 0.34.0
-**Python:** 3.13.5
-**Development Hardware:** MacBook Air
+Responsibilities:
 
-The LLM is accessed through a thin local wrapper.
+- Write captions
+- Generate hashtags
+- Adapt copy to the selected channel
+- Maintain the target audience and campaign objective
 
-No hosted LLM APIs are required by the main pipeline.
-
-The system does not use:
-
-* OpenAI API
-* Anthropic API
-* Gemini API
-* Groq API
-* Other hosted LLM APIs
-
-This satisfies the fully-local execution requirement.
+The system also normalizes hashtags before publishing to prevent malformed hashtag data.
 
 ---
 
-# 5. Reliability and Structured Output
+### Creative Agent
 
-Local models can occasionally produce malformed JSON or additional conversational text.
+The Creative Agent converts the campaign strategy and content into creative direction.
 
-The local model wrapper therefore uses:
+Responsibilities:
 
-* Structured JSON output requirements
-* JSON parsing and validation
-* Retry handling for malformed responses
-* A bounded retry process instead of allowing invalid output to propagate through the pipeline
-
-This makes the agent pipeline more reliable when running with a local model.
+- Generate creative briefs
+- Define visual direction
+- Connect creative concepts to campaign objectives
+- Provide information that can be reviewed before publishing
 
 ---
 
-# 6. Mock Social Media Platform
+### Publisher Agent
 
-The mock platform is built specifically for this project.
+The Publisher Agent handles the final publishing stage.
 
-### Technology
+Responsibilities:
 
-* FastAPI
-* SQLite
-* Python
-
-The Publisher Agent communicates with the platform through an API.
-
-The platform provides persistent storage for published posts and simulated engagement data.
-
-Post information includes:
-
-* Channel
-* Content
-* Hashtags
-* Posting time
-* Creative brief
-* Engagement metrics
+- Send approved posts to the mock social media API
+- Preserve post metadata
+- Record the channel
+- Record content
+- Record hashtags
+- Record posting time
+- Collect simulated performance metrics
 
 ---
 
-# 7. Simulated Engagement Model
+### Analytics Agent
 
-The simulator does not use completely random engagement.
+The Analytics Agent analyzes published campaign results.
 
-It starts with a random baseline and then applies deterministic rules based on post characteristics.
+Responsibilities:
 
-This makes the platform suitable for testing whether the Analytics Agent can discover meaningful patterns.
+- Summarize campaign performance
+- Compare channels when enough evidence exists
+- Analyze available content characteristics
+- Identify useful patterns
+- Generate actionable recommendations
+- Avoid unsupported causal claims
 
-## Hidden Rules
+The analytics layer is intentionally conservative.
 
-### 1. Reel Caption Length
-
-Reels with captions of 40 words or fewer receive a view boost.
-
-Reels with captions above 80 words receive a view penalty.
-
-### 2. Carousel + Save Language
-
-Carousel posts containing language related to saving receive increased saves and an additional view boost.
-
-### 3. Hashtag Count
-
-Hashtag count has a non-linear effect.
-
-* More than 8 hashtags reduces views and likes.
-* 3–5 hashtags provides a moderate view boost.
-
-### 4. Posting Time
-
-Posts published between 10:00 and 12:00 receive increased views and likes.
-
-### Signals Not Implemented
-
-Two example signals from the task were intentionally not implemented in the current simulator:
-
-* Question-ending engagement boost
-* Novelty decay when the same format repeats
-
-These are documented separately rather than being presented as discovered features.
+For example, if all posts use the same number of hashtags, the system does not claim that hashtag count caused performance differences.
 
 ---
 
-# 8. Campaign Creation Flow
+## 4. Human Review Gate
 
-The campaign starts from a human-written brief.
+The system includes a human approval step between content generation and publishing.
 
-For example:
+The workflow is:
 
-> We are launching a budget-friendly table fan for students. Run a short awareness campaign.
+```text
+AI generates campaign
+        |
+        v
+Human reviews campaign
+        |
+        +---- Revise
+        |
+        v
+Approve
+        |
+        v
+Publisher Agent
+```
 
-The system processes the brief through the agent pipeline:
+This prevents AI-generated content from automatically being published without review.
+
+---
+
+## 5. Mock Social Media Platform
+
+A custom mock social media platform is included in the project.
+
+It is implemented using:
+
+- FastAPI
+- SQLite
+- Pydantic
+
+The API accepts social media posts and generates simulated performance metrics.
+
+Example publishing flow:
+
+```text
+Publisher Agent
+      |
+      v
+FastAPI Mock Platform
+      |
+      v
+SQLite Database
+      |
+      v
+Simulated Metrics
+```
+
+The platform provides a controlled environment for testing the complete campaign lifecycle.
+
+---
+
+## 6. Hidden Simulator Rules
+
+The mock platform contains hidden performance rules so that the analytics system has to discover useful signals from observed data.
+
+The current simulator includes four important rules.
+
+| Variable | Hidden Rule |
+|---|---|
+| Reel caption length | Shorter Reel copy receives a views boost; very long copy receives a penalty |
+| Carousel content | Carousel posts containing a save-oriented message receive higher saves and additional views |
+| Hashtag count | 3–5 hashtags receive a small boost; more than 8 hashtags receive a penalty |
+| Posting time | Posts published between 10:00 and 12:00 receive a performance boost |
+
+These rules are implemented inside the simulator rather than directly exposed to the analytics agent.
+
+### Rules intentionally not implemented
+
+The task suggested additional signals such as question-ending boosts and novelty decay.
+
+These were not implemented in the current version.
+
+This keeps the simulator intentionally scoped while still providing multiple variables for the analytics loop to investigate.
+
+---
+
+## 7. Campaign Formation
+
+The campaign starts with a human-written brief.
+
+The Strategy Agent converts the brief into structured campaign information.
+
+The following agents then progressively enrich the shared state:
 
 ```text
 Human Brief
@@ -275,384 +286,434 @@ Creative
     ↓
 Human Review
     ↓
-Publisher
-    ↓
-Mock Platform
-    ↓
-Analytics
+Publishing
 ```
 
-The Streamlit UI allows the human operator to change the campaign brief before running the workflow.
+Each stage has a specific responsibility rather than asking one model prompt to perform the entire workflow.
 
 ---
 
-# 9. Human Approval
+## 8. Shared Campaign State
 
-Publishing is intentionally separated from content generation.
+The agents communicate through a shared campaign state.
 
-The UI displays the generated campaign before publication.
+The state contains information such as:
 
-The human can:
+- Human campaign brief
+- Target audience
+- Channel mix
+- Drafted posts
+- Creative briefs
+- Feedback
 
-* Review the generated posts
-* Approve the campaign
-* Reject the campaign
+This allows downstream agents to use the output of previous agents.
 
-Publishing only occurs after approval.
-
-This prevents the system from automatically publishing unreviewed AI-generated content.
-
----
-
-# 10. Weekly Analysis Loop
-
-At the end of Week 1, the Analytics Agent analyses the simulated campaign results.
-
-The report considers:
-
-* Total performance
-* Channel performance
-* Content characteristics
-* Hashtag variation
-* Posting time
-* Content length
-* Performance differences between posts
-
-The recommendation layer also applies evidence guardrails.
-
-A variable is not recommended for modification when there is no meaningful variation in the observed data.
-
-The system also avoids claiming causation from small samples.
+The design also makes the workflow easier to debug because each stage has a defined input and output.
 
 ---
 
-# 11. Week 1 → Week 2 Improvement Loop
+## 9. Structured Output and Reliability
 
-The strongest part of the system is the closed feedback loop.
+The local model is prompted to return structured JSON.
+
+The application validates and normalizes the generated information before passing it to the next stage.
+
+Examples of reliability checks include:
+
+- JSON parsing
+- Hashtag normalization
+- Missing-field handling
+- Channel preservation
+- Post metadata preservation
+- Defensive defaults
+
+The system also includes fallback handling for malformed model output.
+
+---
+
+## 10. Analytics Guardrails
+
+The analytics layer is designed to avoid overclaiming.
+
+### Single-post campaigns
+
+When only one post is available, the system does not attempt to make comparative claims.
+
+Instead, it reports:
+
+- Observed metrics
+- Available content characteristics
+- Lack of sufficient comparative evidence
+
+### Multiple posts
+
+Comparisons are only made when there is enough variation in the relevant variable.
+
+For example:
 
 ```text
-Week 1
-  ↓
-Publish
-  ↓
-Collect Metrics
-  ↓
-Analytics Agent
-  ↓
-Recommendations
-  ↓
-Create Week 2 Brief
-  ↓
-Strategy
-  ↓
-Content
-  ↓
-Creative
-  ↓
-Human Review
-  ↓
-Publish Week 2
-  ↓
-Compare Performance
+If every post has 3 hashtags:
+
+Do not conclude:
+"3 hashtags perform best."
+
+Instead conclude:
+"There is insufficient variation in hashtag count to evaluate its effect."
 ```
 
-The Week 2 campaign keeps the original campaign objective and target audience while incorporating the recommendations generated from Week 1.
-
-This makes it possible to compare the two weeks rather than treating analytics as a standalone report.
+This prevents the analytics system from treating constant variables as evidence.
 
 ---
 
-# 12. Example Before / After Results
+## 11. Week 1 Analysis
 
-One demonstrated run produced the following results:
+After Week 1 publishing, the system collects simulated performance metrics.
 
-| Metric   | Week 1 | Week 2 | Change |
-| -------- | -----: | -----: | -----: |
-| Views    |  9,131 |  5,046 | -4,085 |
-| Likes    |    514 |    288 |   -226 |
-| Comments |     30 |     24 |     -6 |
-| Saves    |     70 |     71 |     +1 |
+The Analytics Agent analyzes the results and produces:
 
-Week 2 did not improve every metric.
+- Performance summary
+- Channel-level observations
+- Evidence-backed insights
+- Recommendations for the next campaign
 
-Views, likes and comments decreased, while saves increased slightly.
-
-This result is intentionally reported as observed rather than being presented as a fabricated improvement. The feedback loop therefore demonstrates measurement and iteration even when the second week does not outperform the first on every KPI.
+The recommendations are then used as input to the Week 2 campaign.
 
 ---
 
-# 13. Analytics Guardrails
+## 12. Week 2 Closed Loop
 
-The Analytics Agent uses conservative recommendations because the simulated campaigns may contain only a small number of posts.
+Week 2 is not simply another independent campaign.
 
-Examples of guardrails include:
-
-* Do not make comparisons when only one post exists.
-* Do not recommend changing a variable when all observed posts use the same value.
-* Do not claim causation from limited observations.
-* Do not infer that longer or shorter content is universally better from a small sample.
-* Prefer repeated patterns and channel-level differences.
-* When evidence is insufficient, recommend controlled testing instead.
-
-This prevents the weekly report from becoming a collection of unsupported assumptions.
-
----
-
-# 14. Project Structure
+The Week 2 brief is generated from:
 
 ```text
-Prodigal_AI_Task1_Sejal_shrivastava_23BAI10851/
-│
-├── agents.py
-├── APIwrapper.py
-├── ollama_wrapper.py
-├── mock_platform.py
-├── app.py
-├── mock_instagram.db
-├── requirements.txt
-├── README.md
-└── ...
+Original Campaign Brief
+          +
+Week 1 Performance
+          +
+Week 1 Recommendations
+          |
+          v
+     Week 2 Brief
 ```
 
-### Important files
+The original campaign objective and target audience are preserved.
 
-**agents.py**
-
-Contains the specialised agents and campaign orchestration.
-
-**ollama_wrapper.py**
-
-Provides the local Ollama model abstraction and structured response handling.
-
-**mock_platform.py**
-
-Contains the FastAPI mock social media platform and SQLite persistence.
-
-**app.py**
-
-Contains the Streamlit user interface and human review workflow.
-
-**mock_instagram.db**
-
-SQLite database used by the mock social media platform.
-
-**requirements.txt**
-
-Contains the Python dependencies required to run the project.
+The purpose is to test whether applying Week 1 learnings changes subsequent performance.
 
 ---
 
-# 15. Installation
+## 13. Example Week 1 → Week 2 Comparison
 
-Clone or extract the project.
+One demonstration run produced the following results.
 
-Create a virtual environment:
+### Week 1
+
+| Metric | Result |
+|---|---:|
+| Posts | 2 |
+| Views | 9,131 |
+| Likes | 514 |
+| Comments | 30 |
+| Saves | 70 |
+
+### Week 2
+
+| Metric | Result |
+|---|---:|
+| Posts | 2 |
+| Views | 5,046 |
+| Likes | 288 |
+| Comments | 24 |
+| Saves | 71 |
+
+### Comparison
+
+| Metric | Week 1 | Week 2 | Change |
+|---|---:|---:|---:|
+| Views | 9,131 | 5,046 | -4,085 |
+| Likes | 514 | 288 | -226 |
+| Comments | 30 | 24 | -6 |
+| Saves | 70 | 71 | +1 |
+
+The results demonstrate the complete feedback loop.
+
+Importantly, the system does not assume that every Week 2 recommendation will automatically improve every metric.
+
+The simulator is stochastic, so performance can vary between runs.
+
+---
+
+## 14. Example Analytics Recommendations
+
+A typical Week 1 analysis can produce recommendations such as:
+
+1. Prioritize the better-performing channel while retaining another channel for comparison.
+2. Repeat strong-performing patterns across multiple posts to test whether the result is reproducible.
+3. Keep the target audience and campaign objective constant while testing one execution variable at a time.
+
+The recommendations are intentionally conservative because the system should distinguish between an observation and a proven causal relationship.
+
+---
+
+## 15. Streamlit Interface
+
+The project includes a Streamlit frontend.
+
+The interface supports:
+
+- Campaign brief input
+- Campaign generation
+- Strategy review
+- Generated content review
+- Creative brief review
+- Human approval
+- Publishing
+- Week 1 analytics
+- Week 2 campaign generation
+- Week 2 performance comparison
+
+The application is designed as an interactive campaign workflow rather than a static analytics dashboard.
+
+---
+
+## 16. Running the Project
+
+### Step 1 — Clone the repository
+
+```bash
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd Prodigal_AI_Task1_Sejal_shrivastava_23BAI10851
+```
+
+### Step 2 — Create a virtual environment
 
 ```bash
 python3 -m venv venv
 ```
 
-Activate it:
+### Step 3 — Activate the environment
 
 ```bash
 source venv/bin/activate
 ```
 
-Install dependencies:
+### Step 4 — Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Make sure Ollama is installed and available.
+### Step 5 — Install and start Ollama
 
-Pull/run the local model:
+Install Ollama separately and make sure the required local model is available.
 
-```bash
-ollama run llama3
-```
-
----
-
-# 16. Running the Project
-
-The system uses three processes.
-
-## Terminal 1 — Ollama
+Example:
 
 ```bash
 ollama run llama3
 ```
 
-Keep the model available while running the application.
+The application uses the local Ollama runtime rather than a hosted LLM API.
 
-## Terminal 2 — Mock Platform
+### Step 6 — Start the mock platform
 
-Activate the virtual environment if necessary:
-
-```bash
-source venv/bin/activate
-```
-
-Start the API:
+Open a terminal and run:
 
 ```bash
 uvicorn mock_platform:app --host 0.0.0.0 --port 8000
 ```
 
-The mock platform will run locally on port 8000.
+Keep this terminal running.
 
-## Terminal 3 — Streamlit UI
+### Step 7 — Start Streamlit
 
-Activate the virtual environment:
-
-```bash
-source venv/bin/activate
-```
-
-Start the application:
+Open another terminal:
 
 ```bash
 streamlit run app.py
 ```
 
-Streamlit will provide the local web interface.
+The Streamlit interface will then be available locally.
 
 ---
 
-# 17. Demo Flow
+## 17. Project Structure
 
-To reproduce the complete workflow:
+```text
+Prodigal_AI_Task1_Sejal_shrivastava_23BAI10851/
+│
+├── agents.py
+├── app.py
+├── mock_platform.py
+├── ollama_wrapper.py
+├── APIwrapper.py
+├── requirements.txt
+├── README.md
+├── mock_instagram.db
+├── Prodigal_AI_Task1_Sejal_Srivastava_Submission_Writeup.pdf
+│
+├── agents_backup.py
+│
+└── .gitignore
+```
 
-1. Start Ollama with the local Llama 3 model.
-2. Start the FastAPI mock social media platform.
-3. Start the Streamlit application.
-4. Enter a campaign brief.
-5. Generate the campaign.
-6. Review the generated posts.
-7. Approve the campaign.
-8. Publisher Agent sends the approved posts to the mock platform.
-9. Analytics Agent generates the Week 1 report.
-10. Use the recommendations to generate Week 2.
-11. Review and publish Week 2.
-12. Compare Week 1 and Week 2 metrics.
+### Important files
 
----
+**`agents.py`**  
+Contains the multi-agent orchestration and agent responsibilities.
 
-# 18. Engineering Decisions
+**`app.py`**  
+Streamlit frontend.
 
-A custom orchestration approach was used instead of a large agent framework.
+**`mock_platform.py`**  
+FastAPI mock social media platform and simulator.
 
-The main reason was simplicity and transparency.
+**`ollama_wrapper.py`**  
+Local Ollama model interface.
 
-Each agent is implemented as a separate function with a clearly defined responsibility, and the shared CampaignState makes the handoff between agents explicit.
+**`APIwrapper.py`**  
+Local model wrapper / structured generation utility.
 
-The project intentionally prioritises a smaller number of connected agents over adding agents that are not fully integrated into the workflow.
-
-The current implementation focuses on:
-
-* Strategy
-* Content
-* Creative
-* Publishing
-* Analytics
-* Human approval
-
-Community management and brand/compliance review were kept outside the core implementation rather than adding shallow agents that were not fully wired into the end-to-end loop.
-
----
-
-# 19. Limitations
-
-The current implementation has several limitations.
-
-### Limited sample size
-
-The demo uses a small number of posts per week, so some simulator signals cannot be reliably inferred from a single run.
-
-### Missing simulator signals
-
-Question-ending engagement and novelty decay are not currently implemented.
-
-### Limited engagement metrics
-
-The current simulator focuses on the core metrics used in the demonstrated run, including views, likes, comments and saves.
-
-### Agent coverage
-
-Community Manager and Brand & Compliance agents are not part of the current core pipeline.
+**`mock_instagram.db`**  
+SQLite storage for the mock platform.
 
 ---
 
-# 20. Future Improvements
+## 18. Engineering Decisions
 
-With additional development time, the system could be extended with:
+### Local model
 
-* Community Manager Agent
-* Brand & Compliance Agent
-* Bounded rejection/revision loops
-* Simulated comments and DM handling
-* Sentiment analysis
-* Shares
-* Click-through rate
-* Follower delta
-* Question-ending engagement rule
-* Novelty decay
-* Larger campaign sample sizes
-* Stronger statistical analysis
-* Persistent campaign memory across multiple campaigns
+A local Llama 3 model was selected through Ollama to satisfy the requirement of avoiding hosted LLM APIs.
 
----
+### Multi-agent design
 
-# 21. Requirement Coverage
+The system separates strategy, content, creative generation, publishing, and analytics instead of using one large prompt.
 
-| Prodigal AI Requirement   | Implementation                                    |
-| ------------------------- | ------------------------------------------------- |
-| Ollama + local model      | Llama 3 8B through Ollama                         |
-| No hosted LLM APIs        | Main pipeline uses local Ollama                   |
-| Multi-agent architecture  | Five specialised agents                           |
-| Separate responsibilities | Strategy, Content, Creative, Publisher, Analytics |
-| Mock social platform      | Custom FastAPI + SQLite                           |
-| Persistent storage        | SQLite                                            |
-| Human campaign brief      | Streamlit input                                   |
-| Human approval            | Approve / Reject gate                             |
-| Campaign generation       | Strategy → Content → Creative                     |
-| Publishing                | Publisher Agent → Mock Platform API               |
-| Weekly analysis           | Analytics Agent                                   |
-| Concrete recommendations  | Evidence-based recommendation layer               |
-| Week 2 improvement loop   | Week 1 recommendations → Week 2                   |
-| Hidden simulator rules    | Timing, length, hashtag and carousel/save effects |
-| Demo data                 | SQLite database included                          |
-| Dependency file           | requirements.txt                                  |
-| Documentation             | README + PDF write-up                             |
+### Mock platform
+
+A custom FastAPI + SQLite platform provides an actual publishing and measurement environment.
+
+### Conservative analytics
+
+The analytics system checks whether sufficient variation exists before making comparisons.
+
+### Closed-loop execution
+
+Week 2 is generated using Week 1 findings so the system demonstrates iterative learning.
 
 ---
 
-# 22. Conclusion
+## 19. Failure Modes Considered
 
-This project demonstrates a local multi-agent workflow rather than a single LLM prompt.
+The system accounts for several practical failure cases.
 
-The key design is the complete lifecycle:
+### Malformed model output
+
+Structured parsing and defensive defaults prevent the entire pipeline from failing when generated JSON is imperfect.
+
+### Missing metadata
+
+Publishing logic preserves channel, content, hashtags, and posting time so analytics can inspect the relevant variables.
+
+### Insufficient evidence
+
+The analytics system avoids comparisons when there are too few observations.
+
+### Constant variables
+
+A variable with only one observed value is not treated as evidence of performance impact.
+
+### Stochastic simulator
+
+Because the simulator contains randomness, different executions can produce different performance numbers.
+
+Therefore, the system focuses on repeatable patterns and controlled testing rather than assuming one run proves causality.
+
+---
+
+## 20. Limitations and Future Improvements
+
+The current implementation intentionally keeps the scope manageable.
+
+Potential future improvements include:
+
+- Add a Community Manager Agent
+- Add a Brand & Compliance Agent
+- Add question-ending engagement rules
+- Add novelty decay across repeated content
+- Add richer channel-specific simulators
+- Run larger A/B experiments
+- Store historical campaign learning across many weeks
+- Add stronger statistical significance testing
+- Add real image generation through a local model
+- Add authentication and multi-user support
+
+These improvements would make the system more suitable for production use.
+
+---
+
+## 21. Requirement Coverage
+
+| Requirement | Implementation |
+|---|---|
+| Local/open-weight model | Llama 3 through Ollama |
+| No hosted LLM API in main flow | Yes |
+| Multi-agent architecture | Strategy, Content, Creative, Publisher, Analytics |
+| Human review | Approval gate before publishing |
+| Mock social platform | FastAPI + SQLite |
+| Campaign creation | Human brief → strategy → content → creative |
+| Weekly analysis | Analytics Agent |
+| Hidden simulator rules | Implemented |
+| Week 2 loop | Implemented |
+| Before/after comparison | Implemented |
+| Reproducible setup | README + requirements |
+| Write-up | Submission PDF included |
+
+---
+
+## 22. Conclusion
+
+This project demonstrates a complete AI-assisted social media campaign lifecycle:
 
 ```text
 Human Brief
      ↓
-Specialised Agents
+Strategy
+     ↓
+Content
+     ↓
+Creative
      ↓
 Human Review
      ↓
-Mock Platform
+Publish
      ↓
-Simulated Audience
+Measure
      ↓
-Analytics
+Analyze
      ↓
-Recommendations
+Improve
      ↓
 Week 2
 ```
 
-The system is designed to make agent responsibilities, handoffs, human control and analytical reasoning visible.
+The key focus of the project is not simply generating social media content.
 
-The implementation also deliberately documents limitations and unsuccessful outcomes instead of presenting every experiment as a success.
+It is demonstrating how multiple specialized agents can work together with a mock platform and an analytics feedback loop to support iterative campaign improvement.
 
+---
+
+## Submission
+
+This repository contains:
+
+- Source code
+- Multi-agent implementation
+- Mock social media platform
+- SQLite demo database
+- Requirements file
+- README documentation
+- Submission write-up PDF
+
+No model weights or virtual environment files are included in the repository.
