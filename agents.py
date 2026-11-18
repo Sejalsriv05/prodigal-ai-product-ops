@@ -200,6 +200,14 @@ def publisher_agent(state: CampaignState):
 
     published_results = []
 
+    api_base_url = os.getenv("API_BASE_URL")
+    if not api_base_url:
+        try:
+            import streamlit as st
+            api_base_url = st.secrets["API_BASE_URL"]
+        except Exception:
+            api_base_url = "http://localhost:8000"
+
     for post in state.get("drafted_posts", []):
 
         payload = {
@@ -212,7 +220,7 @@ def publisher_agent(state: CampaignState):
 
         try:
             response = requests.post(
-                os.getenv("API_BASE_URL", "http"+chr(58)+chr(47)+chr(47)+"localhost:8000").rstrip("/") + "/posts/publish",
+                api_base_url.rstrip("/") + "/posts/publish",
                 json=payload
             )
 
