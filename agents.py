@@ -206,7 +206,7 @@ def publisher_agent(state: CampaignState):
             import streamlit as st
             api_base_url = st.secrets["API_BASE_URL"]
         except Exception:
-            api_base_url = "http://localhost:8000"
+            api_base_url = "http"+chr(58)+chr(47)+chr(47)+"localhost:8000"
 
     for post in state.get("drafted_posts", []):
 

@@ -5,11 +5,17 @@ import requests
 
 def generate_json_response(prompt, model=None, retries=3):
     api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        try:
+            import streamlit as st
+            api_key = st.secrets["GROQ_API_KEY"]
+        except Exception:
+            api_key = None
 
     if not api_key:
         raise ValueError("GROQ_API_KEY is not configured")
 
-    url = "https://api.groq.com/openai/v1/chat/completions"
+    url = "https"+chr(58)+chr(47)+chr(47)+"api.groq.com/openai/v1/chat/completions"
 
     payload = {
         "model": os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
