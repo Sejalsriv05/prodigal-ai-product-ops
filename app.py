@@ -53,6 +53,81 @@ st.markdown("""
         color: #8aff9c;
         font-weight: bold;
     }
+
+    /* IMPROVED DASHBOARD CONTRAST */
+
+    /* Metric numbers */
+    [data-testid="stMetricValue"],
+    [data-testid="stMetricValue"] div {
+        color: #ffffff !important;
+        font-weight: 800 !important;
+    }
+
+    /* Metric labels */
+    [data-testid="stMetricLabel"],
+    [data-testid="stMetricLabel"] p {
+        color: #d1e2d5 !important;
+        font-weight: 600 !important;
+    }
+
+    /* Metric cards */
+    [data-testid="stMetric"] {
+        background-color: #111815 !important;
+        border: 1px solid #365342 !important;
+        border-radius: 12px !important;
+        padding: 16px !important;
+    }
+
+    /* Main text */
+    .stMarkdown p,
+    .stMarkdown li,
+    label,
+    .stCaption {
+        color: #e8f5e9 !important;
+    }
+
+    /* Input fields */
+    .stTextInput input,
+    .stTextArea textarea,
+    .stNumberInput input {
+        background-color: #17231c !important;
+        color: #ffffff !important;
+        border: 1px solid #52745c !important;
+    }
+
+    /* Placeholder text */
+    input::placeholder,
+    textarea::placeholder {
+        color: #b5c5b8 !important;
+        opacity: 1 !important;
+    }
+
+    /* Select boxes */
+    [data-baseweb="select"] {
+        background-color: #17231c !important;
+        color: #ffffff !important;
+    }
+
+    /* Buttons */
+    .stButton button {
+        background-color: #245c36 !important;
+        color: #ffffff !important;
+        border: 1px solid #65c77c !important;
+        font-weight: 700 !important;
+    }
+
+    .stButton button:hover {
+        background-color: #347a49 !important;
+        color: #ffffff !important;
+    }
+
+    /* Expander and tabs */
+    [data-testid="stExpander"],
+    [data-testid="stTabs"] button {
+        color: #e8f5e9 !important;
+    }
+
+    
 </style>
 """, unsafe_allow_html=True)
 
