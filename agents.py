@@ -1,5 +1,6 @@
 from typing import TypedDict, List, Dict, Any
 import json
+import os
 from ollama_wrapper import generate_json_response
 import requests
 
@@ -211,7 +212,7 @@ def publisher_agent(state: CampaignState):
 
         try:
             response = requests.post(
-                "http://localhost:8000/posts/publish",
+                os.getenv("API_BASE_URL", "http"+chr(58)+chr(47)+chr(47)+"localhost:8000").rstrip("/") + "/posts/publish",
                 json=payload
             )
 

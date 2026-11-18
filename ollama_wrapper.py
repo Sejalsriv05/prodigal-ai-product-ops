@@ -1,61 +1,57 @@
-import requests
+import os
 import json
 import time
+import requests
 
-def generate_json_response(prompt, model="llama3", retries=3):
-    """
-    Sends a prompt to a local Ollama model and forces a JSON response.
-    Includes a retry mechanism for malformed outputs.
-    """
-    url = "http://localhost:11434/api/generate"
-    
-    # The payload configures the request. 
-    # Setting "format": "json" is Ollama's native way to enforce structured output.
+def generate_json_response(prompt, model=None, retries=3):
+    api_key = os.getenv("GROQ_API_KEY")
+
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not configured")
+
+    url = "https://api.groq.com/openai/v1/chat/completions"
+
     payload = {
-        "model": model,
-        "prompt": prompt,
-        "stream": False,
-        "format": "json" 
+        "model": os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+        "messages": [
+            {
+                "role": "system",
+                "content": "Return only a valid JSON object."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "response_format": {"type": "json_object"}
     }
-    
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+
     for attempt in range(retries):
         try:
-            # 1. Send the POST request to the local API
-            response = requests.post(url, json=payload)
-            response.raise_for_status() 
-            
-            # 2. Extract the text from the response
-            result = response.json()
-            response_text = result.get("response", "")
-            
-            # 3. Validate the JSON
-            # Even with format="json", smaller local models sometimes hallucinate extra text.
-            # json.loads() acts as our strict validator.
-            parsed_json = json.loads(response_text)
-            
-            return parsed_json
-            
-        except requests.exceptions.RequestException as e:
-            print(f"Network error on attempt {attempt + 1}: {e}")
-        except json.JSONDecodeError:
-            print(f"Malformed JSON output on attempt {attempt + 1}. Retrying...")
-        
-        # Brief pause before retrying to give the system a breath
-        time.sleep(1)
-        
-    print("Failed to get a valid JSON response after maximum retries.")
-    return None
+            response = requests.post(
+                url,
+                headers=headers,
+                json=payload,
+                timeout=60
+            )
+            response.raise_for_status()
 
-# --- Example Usage (Only runs if you execute this file directly) ---
-if __name__ == "__main__":
-    test_prompt = """
-    You are a Strategist. Output a JSON object with exactly two keys: "target_audience" and "channel_mix".
-    Example: {"target_audience": "students", "channel_mix": ["reel", "static"]}
-    """
-    
-    print("Sending request to Ollama...")
-    output = generate_json_response(test_prompt, model="llama3")
-    
-    if output:
-        print("\nSuccessfully generated and parsed JSON:")
-        print(json.dumps(output, indent=2))
+            result = response.json()
+            response_text = result["choices"][0]["message"]["content"]
+
+            return json.loads(response_text)
+
+        except (requests.exceptions.RequestException,
+                json.JSONDecodeError,
+                KeyError,
+                IndexError) as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
+            time.sleep(1)
+
+    print("Failed to generate valid JSON.")
+    return None
